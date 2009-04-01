@@ -77,7 +77,7 @@ module DataMapper
             end
           end
           
-          # store an array of strings or a comma separated list of strings
+          # allow an instance of self, an array of strings or symbols, or a comma separated list of attribute names as string
           # storage format is a comma separated string with no whitespace
           def attributes_to_clone=(attrs)
             case attrs = (attrs.is_a?(self.class) ? attrs.attributes_to_clone : attrs)
@@ -89,7 +89,7 @@ module DataMapper
             end
           end
         
-          # returns an array of strings representing the properties to be cloned
+          # returns an array of symbols representing the properties to be cloned
           def attributes_to_clone
             (attrs = attribute_get(:attributes_to_clone)) ? attrs.split(',').map { |a| a.to_sym } : []
           end
