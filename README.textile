@@ -1,20 +1,22 @@
 h2. dm-is-cloneable
 
-A DataMapper plugin that adds the ability to clone any model. 
-As this alone would not be a really big deal, it is also possible
-to specifiy a 1:n relation with so called clone_specs. In these,
-the attributes_to_clone are persisted, thus leaving clients with
-the choice of selecting predefined sets of attributes_to_clone.
+A @DataMapper@ plugin that adds the ability to clone any model. 
+As this alone wouldn't really be a big deal, it is also possible
+to specifiy a _1:n relation with so called clone_specs_. In these,
+the @attributes_to_clone@ are persisted, thus leaving clients with
+the choice of selecting _predefined sets of attributes to clone_.
 
 <pre>
 <code>
 require 'rubygems'
 
 gem 'dm-core',         '=0.9.11'
+gem 'dm-validations',  '=0.9.11'
 gem 'dm-is-remixable', '=0.9.11'
 gem 'dm-is-cloneable', '=0.0.1'
 
 require 'dm-core'
+require 'dm-validations'
 require 'dm-is-remixable'
 require 'dm-is-cloneable'
 
@@ -27,15 +29,21 @@ class Item
 
   include DataMapper::Resource
 
-  property :id, Serial
+  property :id,             Serial
+  property :master_item_id, Integer # add this property if backlinks are desired
   
-  property :name,        String
-  property :description, String
+  property :name,           String
+  property :description,    String
   
-  is :cloneable, :clone_specs => true
+  is :cloneable
   
   # adds the following api to this class
-  # Item#clone(nr_of_clones, attributes_to_clone)
+  #
+  # Item#clone_resource(nr_of_clones, attributes_to_clone = <:all|String|Array[String|Symbol]|ItemCloneSpec>)
+  # Item#master_resource
+  # Item#cloned_resources
+  # Item#has_backlinks_to_master?
+  # Item#has_clone_specs?
   
 end
 
@@ -44,18 +52,32 @@ end
 # class ItemCloneSpec
 #
 #   include DataMapper::Resource
-#   
-#   is :remixable
 #
-#   properties
+#   property :name,                String, :length => (1..64)
+#   property :description,         Text
 #
-#   property :id,                  Serial
-#
-#   property :attributes_to_clone, Object, :length => 512 # Array of Symbols/Strings
+#   property :attributes_to_clone, String, :length => (1..1024), :auto_validation => false
 #
 #   property :created_at,          DateTime
 #   property :updated_at,          DateTime
 #   property :deleted_at,          ParanoidDateTime
+#
+#   # allow an instance of self, an array of strings or symbols, or a comma separated list of attribute names as string
+#   # storage format is a comma separated string with no whitespace
+#   def attributes_to_clone=(attrs)
+#     case attrs = (attrs.is_a?(self.class) ? attrs.attributes_to_clone : attrs)
+#     when String then attribute_set(:attributes_to_clone, attrs.gsub(' ', ''))
+#     when Symbol then attribute_set(:attributes_to_clone, attrs.to_s)
+#     when Array  then attribute_set(:attributes_to_clone, attrs.map { |a| a.to_s }.join(','))
+#     else
+#       raise ArgumentError, "attrs must be an Array or a String separated by commas but was #{attrs.class.name}, #{attrs}"
+#     end
+#   end
+#
+#   # returns an array of symbols representing the properties to be cloned
+#   def attributes_to_clone
+#     (attrs = attribute_get(:attributes_to_clone)) ? attrs.split(',').map { |a| a.to_sym } : []
+#   end
 #
 # end
 </code>
