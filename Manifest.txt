@@ -1,0 +1,13 @@
+History.txt
+LICENSE
+Manifest.txt
+README.textile
+Rakefile
+TODO
+lib/dm-is-cloneable.rb
+lib/dm-is-cloneable/is/cloneable.rb
+lib/dm-is-cloneable/is/version.rb
+spec/integration/cloneable_spec.rb
+spec/integration/clone_spec_spec.rb
+spec/spec.opts
+spec/spec_helper.rb

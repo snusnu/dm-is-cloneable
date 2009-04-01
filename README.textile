@@ -1,0 +1,62 @@
+h2. dm-is-cloneable
+
+A DataMapper plugin that adds the ability to clone any model. 
+As this alone would not be a really big deal, it is also possible
+to specifiy a 1:n relation with so called clone_specs. In these,
+the attributes_to_clone are persisted, thus leaving clients with
+the choice of selecting predefined sets of attributes_to_clone.
+
+<pre>
+<code>
+require 'rubygems'
+
+gem 'dm-core',         '=0.9.11'
+gem 'dm-is-remixable', '=0.9.11'
+gem 'dm-is-cloneable', '=0.0.1'
+
+require 'dm-core'
+require 'dm-is-remixable'
+require 'dm-is-cloneable'
+
+DataMapper::Logger.new(STDOUT, :debug)
+
+DataMapper.setup(:default, 'sqlite3:memory:')
+
+
+class Item
+
+  include DataMapper::Resource
+
+  property :id, Serial
+  
+  property :name,        String
+  property :description, String
+  
+  is :cloneable, :clone_specs => true
+  
+  # adds the following api to this class
+  # Item#clone(nr_of_clones, attributes_to_clone)
+  
+end
+
+# will define and thus be able to auto_migrate! by using dm-is-remixable:
+#
+# class ItemCloneSpec
+#
+#   include DataMapper::Resource
+#   
+#   is :remixable
+#
+#   properties
+#
+#   property :id,                  Serial
+#
+#   property :attributes_to_clone, Object, :length => 512 # Array of Symbols/Strings
+#
+#   property :created_at,          DateTime
+#   property :updated_at,          DateTime
+#   property :deleted_at,          ParanoidDateTime
+#
+# end
+</code>
+</pre>
