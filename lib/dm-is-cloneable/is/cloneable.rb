@@ -111,9 +111,7 @@ module DataMapper
             raise ArgumentError, 'attrs_to_clone must be one of [ :all | ItemCloneSpec | Array<String|Symbol> ]'
           end
           
-          unless only_clone.all? { |a| self.attributes.include?(a) }
-            # expensive second iteration only happens in errorneous codepath
-            unknown_attributes = only_clone.select { |a| !self.attributes.include?(a) }
+          unless (unknown_attributes = only_clone.select { |a| !self.attributes.include?(a) }).empty?
             raise ArgumentError, "#{self.class.name} has no properties named: #{unknown_attributes}"
           end
           
