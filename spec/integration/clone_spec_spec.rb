@@ -28,7 +28,7 @@ if HAS_SQLITE3 || HAS_MYSQL || HAS_POSTGRES
       ItemCloneSpec.auto_migrate!
 
       @i = Item.create(:id => 1)
-      @s = @i.item_clone_specs.build :name => "test clone spec"
+      @s = @i.item_clone_specs.new :name => "test clone spec"
       
     end
     

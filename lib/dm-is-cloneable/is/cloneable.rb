@@ -29,7 +29,7 @@ module DataMapper
           :clone_specs        => true,
           :master_backlink_id => "master_#{Extlib::Inflection.foreign_key(self.name)}",
           :as                 => nil,
-          :class_name         => "#{self}CloneSpec"
+          :model         => "#{self}CloneSpec"
         }.merge(options)
         
         @clone_master_backlink_id = options[:master_backlink_id].to_sym
@@ -38,10 +38,10 @@ module DataMapper
         @clone_master_backlink = @clone_master_backlink_id.to_s.gsub!('_id','').to_sym
         class_inheritable_accessor :clone_master_backlink
         
-        @cloneable_class_name = options[:class_name]
+        @cloneable_class_name = options[:model]
         class_inheritable_accessor :cloneable_class_name
         
-        remix n, CloneSpec, :as => options[:as], :class_name => @cloneable_class_name
+        remix n, CloneSpec, :as => options[:as], :model => @cloneable_class_name
         
         @clone_spec_reader = Extlib::Inflection.tableize(@cloneable_class_name.snake_case).to_sym
         class_inheritable_accessor :clone_spec_reader
@@ -57,7 +57,7 @@ module DataMapper
         end
         
         if @clone_master_backlink_id && properties.map{ |p| p.name }.include?(@clone_master_backlink_id)
-          belongs_to @clone_master_backlink, :child_key => [@clone_master_backlink_id], :class_name => self.name
+          belongs_to @clone_master_backlink, :child_key => [@clone_master_backlink_id], :model => self.name
         end
         
         # support closing over values that are only accessible via self
@@ -103,7 +103,7 @@ module DataMapper
         def clone_resource(nr_of_clones = 1, attrs_to_clone = :all)
           
           only_clone = case attrs_to_clone
-          when :all then []
+          when :all then self.class.properties.map { |p| p.name unless p.name == :id }.compact!
           when ItemCloneSpec then attrs_to_clone.attributes_to_clone
           when Array then attrs_to_clone
           when String then attrs_to_clone.split(',').map { |a| a.to_sym }
@@ -112,18 +112,17 @@ module DataMapper
           end
           
           unless (unknown_attributes = only_clone.select { |a| !self.attributes.include?(a) }).empty?
-            raise ArgumentError, "#{self.class.name} has no properties named: #{unknown_attributes}"
+            raise ArgumentError, "#{self.class.name} has no properties named: #{unknown_attributes.inspect}"
           end
+
+          cloned_attrs = {}
+          only_clone.each { |a| cloned_attrs[a] = self.attributes[a] }
+          cloned_attrs.merge!(self.class.clone_master_backlink_id => self.id) if has_backlink_to_master?
           
           clones = []
-          nr_of_clones.times do
-            clone = self.class.new
-            cloned_attrs = self.attributes.except(:id)
-            cloned_attrs.merge!(self.class.clone_master_backlink_id => self.id) if has_backlink_to_master?
-            clone.update_attributes(cloned_attrs, *only_clone)            
-            clones << clone
-          end
+          nr_of_clones.times { clones << self.class.create(cloned_attrs) }
           clones
+          
         end
         
         def master_resource
