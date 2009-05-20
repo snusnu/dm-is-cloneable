@@ -1,4 +1,3 @@
-require 'rubygems'
 require 'spec'
 require 'spec/rake/spectask'
 require 'pathname'
@@ -12,9 +11,9 @@ GEM_NAME = "dm-is-cloneable"
 GEM_VERSION = DataMapper::Is::Cloneable::VERSION
 
 GEM_DEPENDENCIES = [
-  ["dm-core",         ">=0.9.11"],
-  ["dm-validations",  ">=0.9.11"],
-  ["dm-is-remixable", ">=0.9.11"]
+  ["dm-core",         ">=0.10.0"],
+  ["dm-validations",  ">=0.10.0"],
+  ["dm-is-remixable", ">=0.10.0"]
 ]
 
 GEM_CLEAN = ["log", "pkg"]
